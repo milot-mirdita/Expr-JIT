@@ -1,5 +1,10 @@
 cmake_minimum_required(VERSION 2.8.12 FATAL_ERROR)
 project(ExprJIT C)
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
+if(HAVE_SANITIZER)
+    include(FindUBSan)
+    include(FindASan)
+endif()
 
 add_library(exprjit
     "src/exprjit.c"
