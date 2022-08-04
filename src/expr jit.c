@@ -8,6 +8,7 @@
 
 #include "expr jit.h"
 
+#define _USE_MATH_DEFINES
 #include <math.h>
 #include <ctype.h>
 #include <stdio.h>
@@ -130,8 +131,8 @@ static oper prec_table[] = {
   {"+", 1, ASSOC_left, OPER_inflix},
 };
 
-static const double constant_e = 2.71828182845904523536;
-static const double constant_pi = 3.14159265358979323846;
+static const double constant_e = M_E;
+static const double constant_pi = M_PI;
 
 static ej_variable builtins[] = {
   {"abs", fabs,        EJ_FUN1, 0},
