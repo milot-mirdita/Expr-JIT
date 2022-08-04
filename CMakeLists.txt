@@ -2,8 +2,8 @@ cmake_minimum_required(VERSION 2.8.12 FATAL_ERROR)
 project(ExprJIT C)
 
 add_library(exprjit
-    "src/expr jit.c"
-    "src/expr jit.h"
+    "src/exprjit.c"
+    "src/exprjit.h"
 )
 target_include_directories(exprjit PUBLIC src)
 

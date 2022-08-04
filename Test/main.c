@@ -18,7 +18,7 @@
 typedef te_expr expression;
 typedef te_variable variable;
 #else
-#include "expr jit.h"
+#include "exprjit.h"
 #define COMPILE(a,b,c) ej_compile((a),(b),(c))
 #define PRINT ej_print
 #define FREE ej_free

@@ -1,5 +1,5 @@
 //
-//  expr jit.h
+//  exprjit.h
 //  Expr JIT
 //
 //  Created by Indi Kernick on 5/2/19.

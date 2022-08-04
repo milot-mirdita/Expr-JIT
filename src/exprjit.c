@@ -1,12 +1,12 @@
 //
-//  expr jit.c
+//  exprjit.c
 //  Expr JIT
 //
 //  Created by Indi Kernick on 5/2/19.
 //  Copyright © 2019 Indi Kernick. All rights reserved.
 //
 
-#include "expr jit.h"
+#include "exprjit.h"
 
 #define _USE_MATH_DEFINES
 #include <math.h>
