@@ -125,7 +125,7 @@ typedef struct oper {
   uint8_t prec;
   uint8_t assoc;
   uint8_t type;
-  int args;
+  uint8_t args;
   const void *addr;
   void *ctx;
 } oper;
