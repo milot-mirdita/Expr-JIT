@@ -155,26 +155,26 @@ static const double constant_e = M_E;
 static const double constant_pi = M_PI;
 
 static ej_variable builtins[] = {
-  {"abs", fabs,        EJ_FUN1, 0},
-  {"acos", acos,       EJ_FUN1, 0},
-  {"asin", asin,       EJ_FUN1, 0},
-  {"atan", atan,       EJ_FUN1, 0},
-  {"atan2", atan2,     EJ_FUN2, 0},
-  {"ceil", ceil,       EJ_FUN1, 0},
-  {"cos", cos,         EJ_FUN1, 0},
-  {"cosh", cosh,       EJ_FUN1, 0},
-  {"e", &constant_e,   EJ_VAR, 0},
-  {"exp", exp,         EJ_FUN1, 0},
-  {"floor", floor,     EJ_FUN1, 0},
-  {"ln", log,          EJ_FUN1, 0},
-  {"log", log,         EJ_FUN1, 0},
-  {"log10", log10,     EJ_FUN1, 0},
-  {"pi", &constant_pi, EJ_VAR, 0},
-  {"sin", sin,         EJ_FUN1, 0},
-  {"sinh", sinh,       EJ_FUN1, 0},
-  {"sqrt", sqrt,       EJ_FUN1, 0},
-  {"tan", tan,         EJ_FUN1, 0},
-  {"tanh", tanh,       EJ_FUN1, 0},
+  {"abs", fabs,        EJ_FUNCTION1, 0},
+  {"acos", acos,       EJ_FUNCTION1, 0},
+  {"asin", asin,       EJ_FUNCTION1, 0},
+  {"atan", atan,       EJ_FUNCTION1, 0},
+  {"atan2", atan2,     EJ_FUNCTION2, 0},
+  {"ceil", ceil,       EJ_FUNCTION1, 0},
+  {"cos", cos,         EJ_FUNCTION1, 0},
+  {"cosh", cosh,       EJ_FUNCTION1, 0},
+  {"e", &constant_e,   EJ_VARIABLE, 0},
+  {"exp", exp,         EJ_FUNCTION1, 0},
+  {"floor", floor,     EJ_FUNCTION1, 0},
+  {"ln", log,          EJ_FUNCTION1, 0},
+  {"log", log,         EJ_FUNCTION1, 0},
+  {"log10", log10,     EJ_FUNCTION1, 0},
+  {"pi", &constant_pi, EJ_VARIABLE, 0},
+  {"sin", sin,         EJ_FUNCTION1, 0},
+  {"sinh", sinh,       EJ_FUNCTION1, 0},
+  {"sqrt", sqrt,       EJ_FUNCTION1, 0},
+  {"tan", tan,         EJ_FUNCTION1, 0},
+  {"tanh", tanh,       EJ_FUNCTION1, 0},
 };
 
 typedef struct oper_stack {
@@ -244,13 +244,13 @@ static oper *findOper(const char* op, int type) {
 }
 
 static bool funOrClo(const int type) {
-  return (type & EJ_FUN) == EJ_FUN || (type & EJ_CLO) == EJ_CLO;
+  return (type & EJ_FUNCTION) == EJ_FUNCTION || (type & EJ_CLOSURE) == EJ_CLOSURE;
 }
 
 static bool shouldPop(oper *top, oper *other) {
   if (top->type == OPER_paren) return false;
-  if ((top->type & EJ_FUN) == EJ_FUN) return true;
-  if ((top->type & EJ_CLO) == EJ_CLO) return true;
+  if ((top->type & EJ_FUNCTION) == EJ_FUNCTION) return true;
+  if ((top->type & EJ_CLOSURE) == EJ_CLOSURE) return true;
   if (top->prec <= other->prec) return true;
   if (top->prec == other->prec && top->assoc == ASSOC_left) return true;
   return false;
@@ -299,9 +299,9 @@ static void pushToOutput(ej_bytecode *bc, oper *op) {
     } else {
       assert(false);
     }
-  } else if ((op->type & EJ_FUN) == EJ_FUN) {
+  } else if ((op->type & EJ_FUNCTION) == EJ_FUNCTION) {
     bc_push_fun(bc, op->addr, ARITY(op->type));
-  } else if ((op->type & EJ_CLO) == EJ_CLO) {
+  } else if ((op->type & EJ_CLOSURE) == EJ_CLOSURE) {
     bc_push_clo(bc, op->addr, ARITY(op->type), op->ctx);
   } else {
     assert(false);
@@ -379,12 +379,12 @@ ej_bytecode *ej_compile(const char *str, ej_variable *vars, size_t len) {
         op.assoc = 0;
         op.type = var->type;
         op.args = 0;
-        op.addr = var->addr;
-        op.ctx = var->ctx;
+        op.addr = var->address;
+        op.ctx = var->context;
         os_push(&stack, op);
       } else {
-        assert(var->type == EJ_VAR && "Taking the value of a function");
-        bc_push_var(bc, var->addr);
+        assert(var->type == EJ_VARIABLE && "Taking the value of a function");
+        bc_push_var(bc, var->address);
         prefixContext = false;
       }
       continue;

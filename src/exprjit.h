@@ -20,18 +20,18 @@ extern "C" {
 #endif
 
 enum {
-  EJ_VAR,
-  EJ_FUN = 8,
-  EJ_FUN0 = EJ_FUN, EJ_FUN1, EJ_FUN2, EJ_FUN3, EJ_FUN4, EJ_FUN5, EJ_FUN6, EJ_FUN7,
-  EJ_CLO = 16,
-  EJ_CLO0 = EJ_CLO, EJ_CLO1, EJ_CLO2, EJ_CLO3, EJ_CLO4, EJ_CLO5, EJ_CLO6, EJ_CLO7
+  EJ_VARIABLE,
+  EJ_FUNCTION = 8,
+  EJ_FUNCTION0 = EJ_FUNCTION, EJ_FUNCTION1, EJ_FUNCTION2, EJ_FUNCTION3, EJ_FUNCTION4, EJ_FUNCTION5, EJ_FUNCTION6, EJ_FUNCTION7,
+  EJ_CLOSURE = 16,
+  EJ_CLOSURE0 = EJ_CLOSURE, EJ_CLOSURE1, EJ_CLOSURE2, EJ_CLOSURE3, EJ_CLOSURE4, EJ_CLOSURE5, EJ_CLOSURE6, EJ_CLOSURE7
 };
 
 typedef struct ej_variable {
   const char *name;
-  const void *addr;
+  const void *address;
   int type;
-  void *ctx;
+  void *context;
 } ej_variable;
 
 typedef struct ej_bytecode ej_bytecode;

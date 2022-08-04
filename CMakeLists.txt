@@ -4,6 +4,7 @@ project(ExprJIT C)
 add_library(exprjit
     "src/exprjit.c"
     "src/exprjit.h"
+    "src/tinyexpr-compat.h"
 )
 target_include_directories(exprjit PUBLIC src)
 
