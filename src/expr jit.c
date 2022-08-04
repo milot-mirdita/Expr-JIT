@@ -112,9 +112,9 @@ enum {
 
 typedef struct oper {
   const char *name;
-  int prec;
-  int assoc;
-  int type;
+  uint8_t prec;
+  uint8_t assoc;
+  uint8_t type;
   int args;
   const void *addr;
   void *ctx;
