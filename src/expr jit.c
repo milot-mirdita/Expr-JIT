@@ -664,6 +664,196 @@ double ej_eval(ej_bytecode *bc) {
   }
 }
 
+
+double ej_eval_goto(ej_bytecode *bc) {
+  assert(bc);
+  assert(bc->ops);
+  uint64_t *op = bc->ops;
+  double stack[EJ_STACK_SIZE];
+  double *top = stack;
+
+  double x, y;
+  void *ctx;
+
+  static void* dispatch_table[] = {
+    &&do_OP_neg,
+    &&do_OP_add, &&do_OP_sub, &&do_OP_mul, &&do_OP_div,
+    &&do_OP_var, &&do_OP_con,
+    &&do_OP_ret,
+    &&do_OP_fun0, &&do_OP_fun1, &&do_OP_fun2, &&do_OP_fun3, &&do_OP_fun4, &&do_OP_fun5, &&do_OP_fun6, &&do_OP_fun7,
+    &&do_OP_clo0, &&do_OP_clo1, &&do_OP_clo2, &&do_OP_clo3, &&do_OP_clo4, &&do_OP_clo5, &&do_OP_clo6, &&do_OP_clo7,
+    &&do_OP_gt, &&do_OP_ge, &&do_OP_lt, &&do_OP_le, &&do_OP_eq, &&do_OP_neq, &&do_OP_and, &&do_OP_or, &&do_OP_not,
+  };
+
+  #define DISPATCH() goto *dispatch_table[*(++op)]
+  goto *dispatch_table[*op];
+  while (1) {
+    do_OP_neg:
+      *top = -(*top);
+      DISPATCH();
+    do_OP_add:
+      y = POP();
+      x = *top;
+      *top = x + y;
+      DISPATCH();
+    do_OP_sub:
+      y = POP();
+      x = *top;
+      *top = x - y;
+      DISPATCH();
+    do_OP_mul:
+      y = POP();
+      x = *top;
+      *top = x * y;
+      DISPATCH();
+    do_OP_div:
+      y = POP();
+      x = *top;
+      *top = x / y;
+      DISPATCH();
+    do_OP_var:
+      ++op;
+      PUSH(**(double**)op);
+      DISPATCH();
+    do_OP_con:
+      ++op;
+      PUSH(*(double*)op);
+      DISPATCH();
+    do_OP_ret:
+      return *top;
+
+    do_OP_fun0:
+      PUSH(CAST_FUN(void)());
+      DISPATCH();
+    do_OP_fun1:
+      x = CAST_FUN(double)(*top);
+      --top;
+      PUSH(x);
+      DISPATCH();
+    do_OP_fun2:
+      x = CAST_FUN(double, double)(top[-1], top[0]);
+      top -= 2;
+      PUSH(x);
+      DISPATCH();
+    do_OP_fun3:
+      x = CAST_FUN(double, double, double)(top[-2], top[-1], top[0]);
+      top -= 3;
+      PUSH(x);
+      DISPATCH();
+    do_OP_fun4:
+      x = CAST_FUN(double, double, double, double)(top[-3], top[-2], top[-1], top[0]);
+      top -= 4;
+      PUSH(x);
+      DISPATCH();
+    do_OP_fun5:
+      x = CAST_FUN(double, double, double, double, double)(top[-4], top[-3], top[-2], top[-1], top[0]);
+      top -= 5;
+      PUSH(x);
+      DISPATCH();
+    do_OP_fun6:
+      x = CAST_FUN(double, double, double, double, double, double)(top[-5], top[-4], top[-3], top[-2], top[-1], top[0]);
+      top -= 6;
+      PUSH(x);
+      DISPATCH();
+    do_OP_fun7:
+      x = CAST_FUN(double, double, double, double, double, double, double)(top[-6], top[-5], top[-4], top[-3], top[-2], top[-1], top[0]);
+      top -= 7;
+      PUSH(x);
+      DISPATCH();
+
+    do_OP_clo0:
+      ctx = CAST_CTX();
+      PUSH(CAST_CLO0()(ctx));
+      DISPATCH();
+    do_OP_clo1:
+      ctx = CAST_CTX();
+      x = CAST_CLO(double)(ctx, *top);
+      --top;
+      PUSH(x);
+      DISPATCH();
+    do_OP_clo2:
+      ctx = CAST_CTX();
+      x = CAST_CLO(double, double)(ctx, top[-1], top[0]);
+      top -= 2;
+      PUSH(x);
+      DISPATCH();
+    do_OP_clo3:
+      ctx = CAST_CTX();
+      x = CAST_CLO(double, double, double)(ctx, top[-2], top[-1], top[0]);
+      top -= 3;
+      PUSH(x);
+      DISPATCH();
+    do_OP_clo4:
+      ctx = CAST_CTX();
+      x = CAST_CLO(double, double, double, double)(ctx, top[-3], top[-2], top[-1], top[0]);
+      top -= 4;
+      PUSH(x);
+      DISPATCH();
+    do_OP_clo5:
+      ctx = CAST_CTX();
+      x = CAST_CLO(double, double, double, double, double)(ctx, top[-4], top[-3], top[-2], top[-1], top[0]);
+      top -= 5;
+      PUSH(x);
+      DISPATCH();
+    do_OP_clo6:
+      ctx = CAST_CTX();
+      x = CAST_CLO(double, double, double, double, double, double)(ctx, top[-5], top[-4], top[-3], top[-2], top[-1], top[0]);
+      top -= 6;
+      PUSH(x);
+      DISPATCH();
+    do_OP_clo7:
+      ctx = CAST_CTX();
+      x = CAST_CLO(double, double, double, double, double, double, double)(ctx, top[-6], top[-5], top[-4], top[-3], top[-2], top[-1], top[0]);
+      top -= 7;
+      PUSH(x);
+      DISPATCH();
+
+    do_OP_gt:
+      y = POP();
+      x = *top;
+      *top = (double)(x > y);
+      DISPATCH();
+    do_OP_ge:
+      y = POP();
+      x = *top;
+      *top = (double)(x >= y);
+      DISPATCH();
+    do_OP_lt:
+      y = POP();
+      x = *top;
+      *top = (double)(x < y);
+      DISPATCH();
+    do_OP_le:
+      y = POP();
+      x = *top;
+      *top = (double)(x <= y);
+      DISPATCH();
+    do_OP_eq:
+      y = POP();
+      x = *top;
+      *top = (double)(x == y);
+      DISPATCH();
+    do_OP_neq:
+      y = POP();
+      x = *top;
+      *top = (double)(x != y);
+      DISPATCH();
+    do_OP_and:
+      y = POP();
+      x = *top;
+      *top = (double)(x && y);
+      DISPATCH();
+    do_OP_or:
+      y = POP();
+      x = *top;
+      *top = (double)(x || y);
+      DISPATCH();
+    do_OP_not:
+      *top = (double)(!(*top));
+      DISPATCH();
+  }
+}
+
 void ej_free(ej_bytecode *bc) {
   if (bc) {
     free(bc->ops);

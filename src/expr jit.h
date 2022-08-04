@@ -38,6 +38,7 @@ typedef struct ej_bytecode ej_bytecode;
 
 ej_bytecode *ej_compile(const char *, ej_variable *, size_t);
 double ej_eval(ej_bytecode *);
+double ej_eval_goto(ej_bytecode *);
 void ej_print(ej_bytecode *);
 void ej_free(ej_bytecode *);
 double ej_interp(const char *);
