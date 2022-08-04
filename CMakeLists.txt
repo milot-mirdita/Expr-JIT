@@ -12,6 +12,7 @@ add_library(exprjit
     "src/tinyexpr-compat.h"
 )
 target_include_directories(exprjit PUBLIC src)
+target_link_libraries(exprjit PUBLIC m)
 
 include(CheckCSourceCompiles)
 check_c_source_compiles("
