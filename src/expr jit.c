@@ -45,7 +45,17 @@ enum {
   OP_clo4,
   OP_clo5,
   OP_clo6,
-  OP_clo7
+  OP_clo7,
+
+  OP_gt   = 24,
+  OP_ge,
+  OP_lt,
+  OP_le,
+  OP_eq,
+  OP_neq,
+  OP_and,
+  OP_or,
+  OP_not,
 };
 
 struct ej_bytecode {
@@ -124,12 +134,21 @@ typedef struct oper {
 // https://en.cppreference.com/w/c/language/operator_precedence
 static oper prec_table[] = {
   {"-",  2,  ASSOC_right, OPER_prefix},
+  {"!",  2,  ASSOC_right, OPER_prefix},
   {"^",  2,  ASSOC_right, OPER_inflix},
   {"*",  3,  ASSOC_left,  OPER_inflix},
   {"/",  3,  ASSOC_left,  OPER_inflix},
   {"%",  3,  ASSOC_left,  OPER_inflix},
   {"+",  4,  ASSOC_left,  OPER_inflix},
-  {"-",  4,  ASSOC_left,  OPER_inflix}
+  {"-",  4,  ASSOC_left,  OPER_inflix},
+  {"<",  6,  ASSOC_left,  OPER_inflix},
+  {"<=", 6,  ASSOC_left,  OPER_inflix},
+  {">",  6,  ASSOC_left,  OPER_inflix},
+  {">=", 6,  ASSOC_left,  OPER_inflix},
+  {"==", 7,  ASSOC_left,  OPER_inflix},
+  {"!=", 7,  ASSOC_left,  OPER_inflix},
+  {"&&", 11, ASSOC_left,  OPER_inflix},
+  {"||", 12, ASSOC_left,  OPER_inflix},
 };
 
 static const double constant_e = M_E;
@@ -213,11 +232,11 @@ static ej_variable *findBuiltin(const char *ident, size_t identSize) {
   return findVar(builtins, sizeof(builtins) / sizeof(builtins[0]), ident, identSize);
 }
 
-static oper *findOper(const char op, int type) {
+static oper *findOper(const char* op, int type) {
   oper *row = prec_table;
   size_t size = sizeof(prec_table) / sizeof(prec_table[0]);
   for (; size != 0; --size, ++row) {
-    if (row->name[0] == op && row->name[1] == 0 && row->type == type) {
+    if (strncmp(op, row->name, strlen(row->name)) == 0 && row->type == type) {
       return row;
     }
   }
@@ -241,24 +260,42 @@ static bool shouldPop(oper *top, oper *other) {
 
 static void pushToOutput(ej_bytecode *bc, oper *op) {
   if (op->type == OPER_inflix) {
-    if (op->name[0] == '+') {
+    if (strncmp(op->name, "+", 1) == 0) {
       bc_push_op(bc, OP_add);
-    } else if (op->name[0] == '-') {
+    } else if (strncmp(op->name, "-", 1) == 0) {
       bc_push_op(bc, OP_sub);
-    } else if (op->name[0] == '*') {
+    } else if (strncmp(op->name, "*", 1) == 0) {
       bc_push_op(bc, OP_mul);
-    } else if (op->name[0] == '/') {
+    } else if (strncmp(op->name, "/", 1) == 0) {
       bc_push_op(bc, OP_div);
-    } else if (op->name[0] == '%') {
+    } else if (strncmp(op->name, "%", 1) == 0) {
       bc_push_fun(bc, fmod, 2);
-    } else if (op->name[0] == '^') {
+    } else if (strncmp(op->name, "^", 1) == 0) {
       bc_push_fun(bc, pow, 2);
+    } else if (strncmp(op->name, "<", 1) == 0) {
+      bc_push_op(bc, OP_lt);
+    } else if (strncmp(op->name, ">", 1) == 0) {
+      bc_push_op(bc, OP_gt);
+    } else if (strncmp(op->name, "<=", 2) == 0) {
+      bc_push_op(bc, OP_le);
+    } else if (strncmp(op->name, ">=", 2) == 0) {
+      bc_push_op(bc, OP_ge);
+    } else if (strncmp(op->name, "==", 2) == 0) {
+      bc_push_op(bc, OP_eq);
+    } else if (strncmp(op->name, "!=", 2) == 0) {
+      bc_push_op(bc, OP_neq);
+    } else if (strncmp(op->name, "&&", 2) == 0) {
+      bc_push_op(bc, OP_and);
+    } else if (strncmp(op->name, "||", 2) == 0) {
+      bc_push_op(bc, OP_or);
     } else {
       assert(false);
     }
   } else if (op->type == OPER_prefix) {
     if (op->name[0] == '-') {
       bc_push_op(bc, OP_neg);
+    } else if (op->name[0] == '!') {
+      bc_push_op(bc, OP_not);
     } else {
       assert(false);
     }
@@ -389,7 +426,7 @@ ej_bytecode *ej_compile(const char *str, ej_variable *vars, size_t len) {
     }
     
     if (prefixContext) {
-      oper *op = findOper(*str, OPER_prefix);
+      oper *op = findOper(str, OPER_prefix);
       if (op) {
         str += strlen(op->name);
         pushToOper(bc, &stack, op);
@@ -398,7 +435,7 @@ ej_bytecode *ej_compile(const char *str, ej_variable *vars, size_t len) {
       }
     }
     
-    oper *op = findOper(*str, OPER_inflix);
+    oper *op = findOper(str, OPER_inflix);
     if (op) {
       str += strlen(op->name);
       pushToOper(bc, &stack, op);
@@ -573,7 +610,51 @@ double ej_eval(ej_bytecode *bc) {
         top -= 7;
         PUSH(x);
         break;
-        
+
+      case OP_lt:
+        y = POP();
+        x = *top;
+        *top = (double)(x < y);
+        break;
+      case OP_le:
+        y = POP();
+        x = *top;
+        *top = (double)(x <= y);
+        break;
+      case OP_gt:
+        y = POP();
+        x = *top;
+        *top = (double)(x > y);
+        break;
+      case OP_ge:
+        y = POP();
+        x = *top;
+        *top = (double)(x >= y);
+        break;
+      case OP_eq:
+        y = POP();
+        x = *top;
+        *top = (double)(x == y);
+        break;
+      case OP_neq:
+        y = POP();
+        x = *top;
+        *top = (double)(x != y);
+        break;
+      case OP_and:
+        y = POP();
+        x = *top;
+        *top = (double)(x && y);
+        break;
+      case OP_or:
+        y = POP();
+        x = *top;
+        *top = (double)(x || y);
+        break;
+      case OP_not:
+        *top = (double)(!(*top));
+        break;
+
       default:
         assert(0);
         __builtin_unreachable();
@@ -612,6 +693,7 @@ void ej_print(ej_bytecode *bc) {
       case OP_div:
         puts("div");
         break;
+
       case OP_var:
         ++op;
         printf("var %p\n", *(void**)op);
@@ -640,6 +722,34 @@ void ej_print(ej_bytecode *bc) {
         printf("clo %" PRIu64 " %p ctx %p\n", arity, fun, ctx);
         break;
       }
+
+      case OP_gt:
+        puts("gt");
+        break;
+      case OP_ge:
+        puts("ge");
+        break;
+      case OP_lt:
+        puts("lt");
+        break;
+      case OP_le:
+        puts("le");
+        break;
+      case OP_eq:
+        puts("eq");
+        break;
+      case OP_neq:
+        puts("neq");
+        break;
+      case OP_and:
+        puts("and");
+        break;
+      case OP_or:
+        puts("or");
+        break;
+      case OP_not:
+        puts("not");
+        break;
       
       default:
         puts("(garbage)");

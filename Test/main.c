@@ -19,6 +19,11 @@ static double calculate(double a) {
   return ( 1/(-a+1) - sqrt(2/(a+2)) + 3/(a+3) );
 }
 
+static double calculate2() {
+  return ( 1 && 0 ) || ( 2 > 1 );
+}
+
+
 int main() {
   double a = 7;
   double ctx = 3;
@@ -32,5 +37,12 @@ int main() {
   ej_print(bc);
   double result = ej_eval(bc);
   printf("Eval: %g\nReal: %g\n", result, calculate(a));
+  ej_free(bc);
+
+  expr = "( 1 && 0 ) || ( 2 > 1 )";
+  bc = ej_compile(expr, NULL, 0);
+  ej_print(bc);
+  result = ej_eval(bc);
+  printf("Eval: %g\nReal: %g\n", result, calculate2());
   ej_free(bc);
 }
