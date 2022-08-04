@@ -22,5 +22,11 @@ if (HAVE_COMPUTED_GOTO)
     target_compile_definitions(exprjit PUBLIC -DHAVE_COMPUTED_GOTO=1)
 endif ()
 
-add_executable(exprjit_test Test/main.c)
+add_executable(exprjit_test test/main.c)
 target_link_libraries(exprjit_test exprjit)
+
+add_executable(exprjit_benchmark test/benchmark.c)
+target_link_libraries(exprjit_benchmark exprjit)
+
+add_executable(exprjit_smoke test/smoke.c test/minctest.h)
+target_link_libraries(exprjit_smoke exprjit)

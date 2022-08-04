@@ -20,7 +20,7 @@ typedef struct ej_bytecode te_expr;
 #define te_eval(a) ej_eval((a))
 #define te_print(a) ej_print((a))
 #define te_free(a) ej_free((a))
-#define te_interp(a) ej_interp((a))
+#define te_interp(a, b) ej_interp((a))
 
 #ifdef __cplusplus
 }
