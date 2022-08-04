@@ -479,7 +479,7 @@ ej_bytecode *ej_compile(const char *str, ej_variable *vars, size_t len) {
   *top = VAL
 #define POP() *(top--)
 
-double ej_eval(ej_bytecode *bc) {
+double ej_eval_switch(ej_bytecode *bc) {
   assert(bc);
   assert(bc->ops);
   uint64_t *op = bc->ops;
@@ -664,7 +664,7 @@ double ej_eval(ej_bytecode *bc) {
   }
 }
 
-
+#ifdef HAVE_COMPUTED_GOTO
 double ej_eval_goto(ej_bytecode *bc) {
   assert(bc);
   assert(bc->ops);
@@ -857,6 +857,7 @@ double ej_eval_goto(ej_bytecode *bc) {
       DISPATCH();
   }
 }
+#endif
 
 void ej_free(ej_bytecode *bc) {
   if (bc) {

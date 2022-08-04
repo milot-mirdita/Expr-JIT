@@ -7,5 +7,19 @@ add_library(exprjit
 )
 target_include_directories(exprjit PUBLIC src)
 
+include(CheckCSourceCompiles)
+check_c_source_compiles("
+    int main() {
+        void *pLabel = &&label;
+        goto *pLabel;
+        return 1;
+        label:
+        return 0;
+    }"
+    HAVE_COMPUTED_GOTO)
+if (HAVE_COMPUTED_GOTO)
+    target_compile_definitions(exprjit PUBLIC -DHAVE_COMPUTED_GOTO=1)
+endif ()
+
 add_executable(exprjit_test Test/main.c)
 target_link_libraries(exprjit_test exprjit)
