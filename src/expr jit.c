@@ -120,15 +120,16 @@ typedef struct oper {
   void *ctx;
 } oper;
 
-
+// use same precedence as C
+// https://en.cppreference.com/w/c/language/operator_precedence
 static oper prec_table[] = {
-  {"-", 4, ASSOC_right, OPER_prefix},
-  {"^", 3, ASSOC_right, OPER_inflix},
-  {"%", 2, ASSOC_left, OPER_inflix},
-  {"/", 2, ASSOC_left, OPER_inflix},
-  {"*", 2, ASSOC_left, OPER_inflix},
-  {"-", 1, ASSOC_left, OPER_inflix},
-  {"+", 1, ASSOC_left, OPER_inflix},
+  {"-",  2,  ASSOC_right, OPER_prefix},
+  {"^",  2,  ASSOC_right, OPER_inflix},
+  {"*",  3,  ASSOC_left,  OPER_inflix},
+  {"/",  3,  ASSOC_left,  OPER_inflix},
+  {"%",  3,  ASSOC_left,  OPER_inflix},
+  {"+",  4,  ASSOC_left,  OPER_inflix},
+  {"-",  4,  ASSOC_left,  OPER_inflix}
 };
 
 static const double constant_e = M_E;
@@ -231,7 +232,7 @@ static bool shouldPop(oper *top, oper *other) {
   if (top->type == OPER_paren) return false;
   if ((top->type & EJ_FUN) == EJ_FUN) return true;
   if ((top->type & EJ_CLO) == EJ_CLO) return true;
-  if (top->prec > other->prec) return true;
+  if (top->prec <= other->prec) return true;
   if (top->prec == other->prec && top->assoc == ASSOC_left) return true;
   return false;
 }
@@ -337,7 +338,7 @@ ej_bytecode *ej_compile(const char *str, ej_variable *vars, size_t len) {
         assert(funOrClo(var->type) && "Calling a variable");
         oper op;
         op.name = var->name;
-        op.prec = 0;
+        op.prec = 255;
         op.assoc = 0;
         op.type = var->type;
         op.args = 0;
@@ -356,7 +357,7 @@ ej_bytecode *ej_compile(const char *str, ej_variable *vars, size_t len) {
       ++str;
       oper op;
       op.name = "(";
-      op.prec = 0;
+      op.prec = 255;
       op.assoc = 0;
       op.type = OPER_paren;
       os_push(&stack, op);
