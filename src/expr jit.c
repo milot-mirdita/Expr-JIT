@@ -693,23 +693,27 @@ double ej_eval_goto(ej_bytecode *bc) {
       DISPATCH();
     do_OP_add:
       y = POP();
-      x = *top;
-      *top = x + y;
+      // x = *top;
+      // *top = x + y;
+      *top += y;
       DISPATCH();
     do_OP_sub:
       y = POP();
-      x = *top;
-      *top = x - y;
+      // x = *top;
+      // *top = x - y;
+      *top -= y;
       DISPATCH();
     do_OP_mul:
       y = POP();
-      x = *top;
-      *top = x * y;
+      // x = *top;
+      // *top = x * y;
+      *top *= y;
       DISPATCH();
     do_OP_div:
       y = POP();
-      x = *top;
-      *top = x / y;
+      // x = *top;
+      // *top = x / y;
+      *top /= y;
       DISPATCH();
     do_OP_var:
       ++op;
