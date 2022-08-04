@@ -9,6 +9,7 @@
 #include "expr jit.h"
 
 #include <stdio.h>
+#include <math.h>
 
 static double three(double *ctx) {
   return *ctx;
