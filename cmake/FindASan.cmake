@@ -29,11 +29,11 @@
 # CMAKE_CXX_FLAGS_ASAN  - Flags to use for C++ with asan
 # HAVE_ADDRESS_SANITIZER - True or false if the ASan build type is available
 
-include(CheckCXXCompilerFlag)
+include(CheckCCompilerFlag)
 
 # Set -Werror to catch "argument unused during compilation" warnings
 set(CMAKE_REQUIRED_FLAGS "-Werror -fsanitize=address") # Also needs to be a link flag for test to pass
-check_cxx_compiler_flag("-fsanitize=address" HAVE_FLAG_SANITIZE_ADDRESS)
+check_c_compiler_flag("-fsanitize=address" HAVE_FLAG_SANITIZE_ADDRESS)
 unset(CMAKE_REQUIRED_FLAGS)
 
 if(HAVE_FLAG_SANITIZE_ADDRESS)
@@ -68,7 +68,7 @@ mark_as_advanced(CMAKE_C_FLAGS_ASAN
                  CMAKE_SHARED_LINKER_FLAGS_ASAN)
 
 
-check_cxx_compiler_flag("-Og" HAVE_OPTIMIZE_DEBUG)
+check_c_compiler_flag("-Og" HAVE_OPTIMIZE_DEBUG)
 if(HAVE_OPTIMIZE_DEBUG)
   set(CMAKE_C_FLAGS_ASANOPT "-Og -g ${ADDRESS_SANITIZER_FLAG} -fno-omit-frame-pointer -fno-optimize-sibling-calls"
           CACHE STRING "Flags used by the C compiler during ASan Optimized builds."

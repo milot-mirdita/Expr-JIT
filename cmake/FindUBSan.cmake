@@ -36,12 +36,11 @@
 ##
 #
 
-include(CheckCXXCompilerFlag)
-include(CheckCXXSourceRuns)
+include(CheckCCompilerFlag)
 
 # Set -Werror to catch "argument unused during compilation" warnings
 set(CMAKE_REQUIRED_FLAGS "-Werror")
-check_cxx_compiler_flag("-fsanitize=undefined" HAVE_FLAG_SANITIZE_UNDEFINED)
+check_c_compiler_flag("-fsanitize=undefined" HAVE_FLAG_SANITIZE_UNDEFINED)
 
 if(HAVE_FLAG_SANITIZE_UNDEFINED)
   set(UNDEFINED_BEHAVIOR_SANITIZER_FLAG "-fsanitize=undefined")
@@ -51,55 +50,6 @@ else()
 endif()
 
 unset(CMAKE_REQUIRED_FLAGS)
-
-# It isn't sufficient to check if the flag works since the
-# check_c_compiler_flag test doesn't link the output.
-#
-# Most clang packages ship broken packages (the autotools build
-# produces a broken package which doesn't include the ubsan
-# compiler-rt, so check that it actually works with a linked program
-# before trying to use it
-set(CMAKE_REQUIRED_FLAGS "${UNDEFINED_BEHAVIOR_SANITIZER_FLAG} -Wno-error=delete-non-virtual-dtor")
-
-check_cxx_source_runs(
-"
-#include <cstdio>
-#include <cstdlib>
-#include <iostream>
-
-class BarB
-{
-    public:
-        float y;
-        /* Include something that uses a virtual function. The symbols
-           that are broken on current OS X libc++ involve this */
-        virtual int arst(int o)
-        {
-            return 4 + o;
-        }
-    };
-
-/* Just include something that ubsan will need to check */
-int main(int argc, const char* argv[])
-{
-    BarB* b = new BarB();
-    if (argc > 1)
-    {
-        fputs(argv[atoi(argv[1])], stdout);
-        std::cout << b->arst(atoi(argv[1]));
-    }
-
-    delete b;
-    return 0;
-}
-"
-  HAVE_UNDEFINED_BEHAVIOR_SANITIZER)
-unset(CMAKE_REQUIRED_FLAGS)
-
-if(NOT HAVE_UNDEFINED_BEHAVIOR_SANITIZER)
-  return()
-endif()
-
 
 set(CMAKE_C_FLAGS_UBSAN "-O0 -g ${UNDEFINED_BEHAVIOR_SANITIZER_FLAG} -fno-omit-frame-pointer"
     CACHE STRING "Flags used by the C compiler during UBSan builds."
