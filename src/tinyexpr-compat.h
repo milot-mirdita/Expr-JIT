@@ -7,6 +7,8 @@
 extern "C" {
 #endif
 
+#define TE_NAT_LOG 1
+
 enum {
   TE_VARIABLE = EJ_VARIABLE,
   TE_FUNCTION = EJ_FUNCTION,
@@ -20,7 +22,12 @@ typedef struct ej_bytecode te_expr;
 #define te_eval(a) ej_eval((a))
 #define te_print(a) ej_print((a))
 #define te_free(a) ej_free((a))
-#define te_interp(a, b) ej_interp((a))
+double te_interp(const char *str, int* err) {
+  if (err != NULL) {
+    *err = 0;
+  }
+  return ej_interp(str);
+}
 
 #ifdef __cplusplus
 }

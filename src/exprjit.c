@@ -20,14 +20,14 @@
 #include <inttypes.h>
 
 enum {
-  OP_neg = 0,
+  OP_pos = 0,
+  OP_neg,
   OP_add,
   OP_sub,
   OP_mul,
   OP_div,
   OP_var,
   OP_con,
-  OP_ret,
   
   OP_fun0 = 8,
   OP_fun1,
@@ -56,6 +56,8 @@ enum {
   OP_and,
   OP_or,
   OP_not,
+
+  OP_ret,
 };
 
 struct ej_bytecode {
@@ -133,8 +135,9 @@ typedef struct oper {
 // use same precedence as C
 // https://en.cppreference.com/w/c/language/operator_precedence
 static oper prec_table[] = {
-  {"-",  2,  ASSOC_right, OPER_prefix},
-  {"!",  2,  ASSOC_right, OPER_prefix},
+  {"+",  1,  ASSOC_right, OPER_prefix},
+  {"-",  1,  ASSOC_right, OPER_prefix},
+  {"!",  1,  ASSOC_right, OPER_prefix},
   {"^",  2,  ASSOC_right, OPER_inflix},
   {"*",  3,  ASSOC_left,  OPER_inflix},
   {"/",  3,  ASSOC_left,  OPER_inflix},
@@ -170,6 +173,7 @@ static ej_variable builtins[] = {
   {"log", log,         EJ_FUNCTION1, 0},
   {"log10", log10,     EJ_FUNCTION1, 0},
   {"pi", &constant_pi, EJ_VARIABLE, 0},
+  {"pow", &pow,        EJ_FUNCTION2, 0},
   {"sin", sin,         EJ_FUNCTION1, 0},
   {"sinh", sinh,       EJ_FUNCTION1, 0},
   {"sqrt", sqrt,       EJ_FUNCTION1, 0},
@@ -292,7 +296,9 @@ static void pushToOutput(ej_bytecode *bc, oper *op) {
       assert(false);
     }
   } else if (op->type == OPER_prefix) {
-    if (op->name[0] == '-') {
+    if (op->name[0] == '+') {
+      bc_push_op(bc, OP_pos);
+    } else if (op->name[0] == '-') {
       bc_push_op(bc, OP_neg);
     } else if (op->name[0] == '!') {
       bc_push_op(bc, OP_not);
@@ -325,6 +331,9 @@ static void pushToOper(ej_bytecode *bc, oper_stack *stack, oper *op) {
     while (shouldPop(top, op)) {
       pushToOutput(bc, top);
       os_pop(stack);
+      if (stack->size == 0) {
+        break;
+      }
       top = os_top(stack);
     }
   }
@@ -361,10 +370,12 @@ ej_bytecode *ej_compile(const char *str, ej_variable *vars, size_t len) {
   
   while (*str) {
     while (isspace(*str)) ++str;
+
+    if (*str == '\0') { continue; }
     
-    if (isalpha(*str)) {
+    if (isalpha(*str) || *str == '_') {
       const char *begin = str++;
-      while (isalnum(*str)) ++str;
+      while (isalnum(*str) || *str == '_') ++str;
       ej_variable *var = findVar(vars, len, begin, str - begin);
       if (!var) {
         var = findBuiltin(begin, str - begin);
@@ -439,7 +450,7 @@ ej_bytecode *ej_compile(const char *str, ej_variable *vars, size_t len) {
     if (op) {
       str += strlen(op->name);
       pushToOper(bc, &stack, op);
-      prefixContext = false;
+      prefixContext = true;
       continue;
     }
     
@@ -491,6 +502,9 @@ double ej_eval_switch(ej_bytecode *bc) {
   
   while (1) {
     switch (*op) {
+      case OP_pos:
+        *top = +(*top);
+        break;
       case OP_neg:
         *top = -(*top);
         break;
@@ -676,18 +690,22 @@ double ej_eval_goto(ej_bytecode *bc) {
   void *ctx;
 
   static void* dispatch_table[] = {
+    &&do_OP_pos,
     &&do_OP_neg,
     &&do_OP_add, &&do_OP_sub, &&do_OP_mul, &&do_OP_div,
     &&do_OP_var, &&do_OP_con,
-    &&do_OP_ret,
     &&do_OP_fun0, &&do_OP_fun1, &&do_OP_fun2, &&do_OP_fun3, &&do_OP_fun4, &&do_OP_fun5, &&do_OP_fun6, &&do_OP_fun7,
     &&do_OP_clo0, &&do_OP_clo1, &&do_OP_clo2, &&do_OP_clo3, &&do_OP_clo4, &&do_OP_clo5, &&do_OP_clo6, &&do_OP_clo7,
     &&do_OP_gt, &&do_OP_ge, &&do_OP_lt, &&do_OP_le, &&do_OP_eq, &&do_OP_neq, &&do_OP_and, &&do_OP_or, &&do_OP_not,
+    &&do_OP_ret,
   };
 
   #define DISPATCH() goto *dispatch_table[*(++op)]
   goto *dispatch_table[*op];
   while (1) {
+    do_OP_pos:
+      *top = +(*top);
+      DISPATCH();
     do_OP_neg:
       *top = -(*top);
       DISPATCH();
@@ -723,8 +741,6 @@ double ej_eval_goto(ej_bytecode *bc) {
       ++op;
       PUSH(*(double*)op);
       DISPATCH();
-    do_OP_ret:
-      return *top;
 
     do_OP_fun0:
       PUSH(CAST_FUN(void)());
@@ -855,6 +871,9 @@ double ej_eval_goto(ej_bytecode *bc) {
     do_OP_not:
       *top = (double)(!(*top));
       DISPATCH();
+
+    do_OP_ret:
+      return *top;
   }
 }
 #endif
@@ -873,6 +892,9 @@ void ej_print(ej_bytecode *bc) {
   uint64_t *op = bc->ops;
   while (1) {
     switch (*op) {
+      case OP_pos:
+        puts("pos");
+        break;
       case OP_neg:
         puts("neg");
         break;
