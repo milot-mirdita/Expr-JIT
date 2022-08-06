@@ -996,7 +996,7 @@ double ej_interp(const char *str) {
   return result;
 }
 
-#define DASM_CHECKS 1
+// #define DASM_CHECKS 1
 #include "dynasm/dasm_proto.h"
 #include "dynasm/dasm_arm64.h"
 

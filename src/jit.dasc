@@ -110,8 +110,8 @@ static void emit(Dst_DECL, uint64_t* op) {
         | movq    x0, *op
       case OP_fun2:
         op++;
-        | ldr     d0, [sp, #(16 * 1)]
-        | ldr     d1, [sp, #(16 * 2)]
+        | ldr     d0, [sp, #(16 * 2)]
+        | ldr     d1, [sp, #(16 * 1)]
         | stp     x29, x30, [sp, #-32]!
         | mov     x29, sp
         | movq    x1, *op
@@ -125,9 +125,9 @@ static void emit(Dst_DECL, uint64_t* op) {
         | movq    x0, *op
       case OP_fun3:
         op++;
-        | ldr     d0, [sp, #(16 * 1)]
+        | ldr     d0, [sp, #(16 * 3)]
         | ldr     d1, [sp, #(16 * 2)]
-        | ldr     d2, [sp, #(16 * 3)]
+        | ldr     d2, [sp, #(16 * 1)]
         | stp     x29, x30, [sp, #-32]!
         | mov     x29, sp
         | movq    x1, *op
@@ -141,10 +141,10 @@ static void emit(Dst_DECL, uint64_t* op) {
         | movq    x0, *op
       case OP_fun4:
         op++;
-        | ldr     d0, [sp, #(16 * 1)]
-        | ldr     d1, [sp, #(16 * 2)]
-        | ldr     d2, [sp, #(16 * 3)]
-        | ldr     d3, [sp, #(16 * 4)]
+        | ldr     d0, [sp, #(16 * 4)]
+        | ldr     d1, [sp, #(16 * 3)]
+        | ldr     d2, [sp, #(16 * 2)]
+        | ldr     d3, [sp, #(16 * 1)]
         | stp     x29, x30, [sp, #-32]!
         | mov     x29, sp
         | movq    x1, *op
@@ -158,11 +158,11 @@ static void emit(Dst_DECL, uint64_t* op) {
         | movq    x0, *op
       case OP_fun5:
         op++;
-        | ldr     d0, [sp, #(16 * 1)]
-        | ldr     d1, [sp, #(16 * 2)]
+        | ldr     d0, [sp, #(16 * 5)]
+        | ldr     d1, [sp, #(16 * 4)]
         | ldr     d2, [sp, #(16 * 3)]
-        | ldr     d3, [sp, #(16 * 4)]
-        | ldr     d4, [sp, #(16 * 5)]
+        | ldr     d3, [sp, #(16 * 2)]
+        | ldr     d4, [sp, #(16 * 1)]
         | stp     x29, x30, [sp, #-32]!
         | mov     x29, sp
         | movq    x1, *op
@@ -176,12 +176,12 @@ static void emit(Dst_DECL, uint64_t* op) {
         | movq    x0, *op
       case OP_fun6:
         op++;
-        | ldr     d0, [sp, #(16 * 1)]
-        | ldr     d1, [sp, #(16 * 2)]
-        | ldr     d2, [sp, #(16 * 3)]
-        | ldr     d3, [sp, #(16 * 4)]
-        | ldr     d4, [sp, #(16 * 5)]
-        | ldr     d5, [sp, #(16 * 6)]
+        | ldr     d0, [sp, #(16 * 6)]
+        | ldr     d1, [sp, #(16 * 5)]
+        | ldr     d2, [sp, #(16 * 4)]
+        | ldr     d3, [sp, #(16 * 3)]
+        | ldr     d4, [sp, #(16 * 2)]
+        | ldr     d5, [sp, #(16 * 1)]
         | stp     x29, x30, [sp, #-32]!
         | mov     x29, sp
         | movq    x1, *op
@@ -195,13 +195,13 @@ static void emit(Dst_DECL, uint64_t* op) {
         | movq    x0, *op
       case OP_fun7:
         op++;
-        | ldr     d0, [sp, #(16 * 1)]
-        | ldr     d1, [sp, #(16 * 2)]
-        | ldr     d2, [sp, #(16 * 3)]
+        | ldr     d0, [sp, #(16 * 7)]
+        | ldr     d1, [sp, #(16 * 6)]
+        | ldr     d2, [sp, #(16 * 5)]
         | ldr     d3, [sp, #(16 * 4)]
-        | ldr     d4, [sp, #(16 * 5)]
-        | ldr     d5, [sp, #(16 * 6)]
-        | ldr     d6, [sp, #(16 * 7)]
+        | ldr     d4, [sp, #(16 * 3)]
+        | ldr     d5, [sp, #(16 * 2)]
+        | ldr     d6, [sp, #(16 * 1)]
         | stp     x29, x30, [sp, #-32]!
         | mov     x29, sp
         | movq    x1, *op

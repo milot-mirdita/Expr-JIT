@@ -151,7 +151,10 @@ void test_results() {
         const double answer = cases[i].answer;
 
         int err;
-        const double ev = te_interp(expr, &err);
+        te_expr* bc = te_compile(expr, 0, 0, &err);
+        te_jit(bc);
+
+        const double ev = te_eval(bc);
         lok(!err);
         const int olfail = lfails;
         lfequal(ev, answer);

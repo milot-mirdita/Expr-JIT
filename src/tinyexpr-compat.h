@@ -28,6 +28,7 @@ double te_interp(const char *str, int* err) {
   }
   return ej_interp(str);
 }
+#define te_jit(a) ej_jit((a))
 
 #ifdef __cplusplus
 }

@@ -67,6 +67,8 @@ void bench(const char *expr, function1 func) {
 
     printf("interp ");
     te_expr *n = te_compile(expr, &lk, 1, 0);
+    te_jit(n);
+
     start = clock();
     d = 0;
     for (j = 0; j < loops; ++j)
