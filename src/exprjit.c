@@ -64,6 +64,8 @@ struct ej_bytecode {
   uint64_t *ops;
   size_t size;
   size_t capacity;
+  double(*jit)();
+  size_t jit_size;
 };
 
 static ej_bytecode *bc_alloc(const size_t cap) {
@@ -71,6 +73,8 @@ static ej_bytecode *bc_alloc(const size_t cap) {
   bc->ops = malloc(sizeof(uint64_t) * cap);
   bc->size = 0;
   bc->capacity = cap;
+  bc->jit = NULL;
+  bc->jit_size = 0;
   return bc;
 }
 
@@ -492,6 +496,9 @@ ej_bytecode *ej_compile(const char *str, ej_variable *vars, size_t len) {
 
 double ej_eval_switch(ej_bytecode *bc) {
   assert(bc);
+  if (bc->jit != NULL) {
+    return (bc->jit)();
+  }
   assert(bc->ops);
   uint64_t *op = bc->ops;
   double stack[EJ_STACK_SIZE];
@@ -681,6 +688,9 @@ double ej_eval_switch(ej_bytecode *bc) {
 #ifdef HAVE_COMPUTED_GOTO
 double ej_eval_goto(ej_bytecode *bc) {
   assert(bc);
+  if (bc->jit != NULL) {
+    return (bc->jit)();
+  }
   assert(bc->ops);
   uint64_t *op = bc->ops;
   double stack[EJ_STACK_SIZE];
@@ -985,3 +995,35 @@ double ej_interp(const char *str) {
   ej_free(bc);
   return result;
 }
+
+#define DASM_CHECKS 1
+#include "dynasm/dasm_proto.h"
+#include "dynasm/dasm_arm64.h"
+
+#include <sys/mman.h>
+
+#include "jit.c"
+void ej_jit(ej_bytecode* bc) {
+  assert(bc);
+  assert(bc->ops);
+
+  dasm_State* state;
+  dasm_init(&state, DASM_MAXSECTION);
+  dasm_setup(&state, ej_compile_actionlist);
+  void* global_labels[GLOB__MAX];
+  dasm_setupglobal(&state, global_labels, GLOB__MAX);
+
+  emit(&state, bc->ops);
+
+  int status;
+  status = dasm_link(&state, &(bc->jit_size));
+  assert(status == DASM_S_OK);
+  bc->jit = mmap(0, bc->jit_size, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
+  status = dasm_encode(&state, bc->jit);
+  assert(status == DASM_S_OK);
+  status = mprotect(bc->jit, bc->jit_size, PROT_READ | PROT_EXEC);
+  assert(status == 0);
+  dasm_free(&state);
+  return;
+}
+

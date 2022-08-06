@@ -47,6 +47,7 @@ double ej_eval_goto(ej_bytecode *);
 void ej_print(ej_bytecode *);
 void ej_free(ej_bytecode *);
 double ej_interp(const char *);
+void ej_jit(ej_bytecode* bc);
 
 #ifdef __cplusplus
 }
