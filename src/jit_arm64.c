@@ -2,17 +2,17 @@
 ** This file has been pre-processed with DynASM.
 ** https://luajit.org/dynasm.html
 ** DynASM version 1.5.0, DynASM arm version 1.5.0
-** DO NOT EDIT! The original file is in "jit.dasc".
+** DO NOT EDIT! The original file is in "jit_arm64.dasc".
 */
+
+#include "dynasm/dasm_arm64.h"
 
 //|.arch arm64
 #if DASM_VERSION != 10500
 #error "Version mismatch between DynASM and included encoding engine"
 #endif
 //|.actionlist ej_compile_actionlist
-static const unsigned int ej_compile_actionlist[359] = {
-0xd503201f,
-0x00000000,
+static const unsigned int ej_compile_actionlist[357] = {
 0xfd400be0,
 0x1e614000,
 0xfd000be0,
@@ -402,14 +402,13 @@ static void emit(Dst_DECL, uint64_t* op) {
   while (1) {
     switch (*op) {
       case OP_pos:
-        //| nop
-        dasm_put(Dst, 0);
+        //| .nop
         break;
       case OP_neg:
         //| ldr     d0, [sp, #16]
         //| fneg    d0, d0
         //| str     d0, [sp, #16]
-        dasm_put(Dst, 2);
+        dasm_put(Dst, 0);
         break;
       case OP_add:
         //| ldr     d0, [sp, #16]
@@ -417,7 +416,7 @@ static void emit(Dst_DECL, uint64_t* op) {
         //| ldr     d1, [sp, #16]
         //| fadd    d0, d1, d0
         //| str     d0, [sp, #16]
-        dasm_put(Dst, 6);
+        dasm_put(Dst, 4);
         break;
       case OP_sub:
         //| ldr     d0, [sp, #16]
@@ -425,7 +424,7 @@ static void emit(Dst_DECL, uint64_t* op) {
         //| ldr     d1, [sp, #16]
         //| fsub    d0, d1, d0
         //| str     d0, [sp, #16]
-        dasm_put(Dst, 12);
+        dasm_put(Dst, 10);
         break;
       case OP_mul:
         //| ldr     d0, [sp, #16]
@@ -433,7 +432,7 @@ static void emit(Dst_DECL, uint64_t* op) {
         //| ldr     d1, [sp, #16]
         //| fmul    d0, d1, d0
         //| str     d0, [sp, #16]
-        dasm_put(Dst, 18);
+        dasm_put(Dst, 16);
         break;
       case OP_div:
         //| ldr     d0, [sp, #16]
@@ -441,7 +440,7 @@ static void emit(Dst_DECL, uint64_t* op) {
         //| ldr     d1, [sp, #16]
         //| fdiv    d0, d1, d0
         //| str     d0, [sp, #16]
-        dasm_put(Dst, 24);
+        dasm_put(Dst, 22);
         break;
       case OP_var:
         op++;
@@ -450,7 +449,7 @@ static void emit(Dst_DECL, uint64_t* op) {
         //| ldr     x0, [x1]
         //| fmov    d0, x0
         //| str     d0, [sp, #16]
-        dasm_put(Dst, 30, (*op)&0xffff, (*op>>16)&0xffff, (*op>>32)&0xffff, (*op>>48)&0xffff);
+        dasm_put(Dst, 28, (*op)&0xffff, (*op>>16)&0xffff, (*op>>32)&0xffff, (*op>>48)&0xffff);
         break;
       case OP_con:
         op++;
@@ -458,18 +457,18 @@ static void emit(Dst_DECL, uint64_t* op) {
         //| movq    x0, *op
         //| fmov    d0, x0
         //| str     d0, [sp, #16]
-        dasm_put(Dst, 43, (*op)&0xffff, (*op>>16)&0xffff, (*op>>32)&0xffff, (*op>>48)&0xffff);
+        dasm_put(Dst, 41, (*op)&0xffff, (*op>>16)&0xffff, (*op>>32)&0xffff, (*op>>48)&0xffff);
         break;
       case OP_ret:
         //| ldr     d0, [sp, #16]
         //| add     sp, sp, #16
         //| ret
-        dasm_put(Dst, 55);
+        dasm_put(Dst, 53);
         return;
       case OP_clo0:
         op++;
         //| movq    x0, *op
-        dasm_put(Dst, 59, (*op)&0xffff, (*op>>16)&0xffff, (*op>>32)&0xffff, (*op>>48)&0xffff);
+        dasm_put(Dst, 57, (*op)&0xffff, (*op>>16)&0xffff, (*op>>32)&0xffff, (*op>>48)&0xffff);
       case OP_fun0:
         op++;
         //| stp     x29, x30, [sp, #-32]!
@@ -479,12 +478,12 @@ static void emit(Dst_DECL, uint64_t* op) {
         //| ldp     x29, x30, [sp], #32
         //| sub     sp, sp, #16
         //| str     d0, [sp, #16]
-        dasm_put(Dst, 68, (*op)&0xffff, (*op>>16)&0xffff, (*op>>32)&0xffff, (*op>>48)&0xffff);
+        dasm_put(Dst, 66, (*op)&0xffff, (*op>>16)&0xffff, (*op>>32)&0xffff, (*op>>48)&0xffff);
         break;
       case OP_clo1:
         op++;
         //| movq    x0, *op
-        dasm_put(Dst, 83, (*op)&0xffff, (*op>>16)&0xffff, (*op>>32)&0xffff, (*op>>48)&0xffff);
+        dasm_put(Dst, 81, (*op)&0xffff, (*op>>16)&0xffff, (*op>>32)&0xffff, (*op>>48)&0xffff);
       case OP_fun1:
         op++;
         //| ldr     d0, [sp, #(16 * 1)]
@@ -493,15 +492,15 @@ static void emit(Dst_DECL, uint64_t* op) {
         //| movq    x1, *op
         //| blr     x1
         //| ldp     x29, x30, [sp], #32
-        dasm_put(Dst, 92, (*op)&0xffff, (*op>>16)&0xffff, (*op>>32)&0xffff, (*op>>48)&0xffff);
+        dasm_put(Dst, 90, (*op)&0xffff, (*op>>16)&0xffff, (*op>>32)&0xffff, (*op>>48)&0xffff);
         //| add      sp, sp, #(16 * 0)
         //| str     d0, [sp, #16]
-        dasm_put(Dst, 106);
+        dasm_put(Dst, 104);
         break;
       case OP_clo2:
         op++;
         //| movq    x0, *op
-        dasm_put(Dst, 108, (*op)&0xffff, (*op>>16)&0xffff, (*op>>32)&0xffff, (*op>>48)&0xffff);
+        dasm_put(Dst, 106, (*op)&0xffff, (*op>>16)&0xffff, (*op>>32)&0xffff, (*op>>48)&0xffff);
       case OP_fun2:
         op++;
         //| ldr     d0, [sp, #(16 * 2)]
@@ -513,12 +512,12 @@ static void emit(Dst_DECL, uint64_t* op) {
         //| ldp     x29, x30, [sp], #32
         //| add     sp, sp, #(16 * 1)
         //| str     d0, [sp, #16]
-        dasm_put(Dst, 117, (*op)&0xffff, (*op>>16)&0xffff, (*op>>32)&0xffff, (*op>>48)&0xffff);
+        dasm_put(Dst, 115, (*op)&0xffff, (*op>>16)&0xffff, (*op>>32)&0xffff, (*op>>48)&0xffff);
         break;
       case OP_clo3:
         op++;
         //| movq    x0, *op
-        dasm_put(Dst, 134, (*op)&0xffff, (*op>>16)&0xffff, (*op>>32)&0xffff, (*op>>48)&0xffff);
+        dasm_put(Dst, 132, (*op)&0xffff, (*op>>16)&0xffff, (*op>>32)&0xffff, (*op>>48)&0xffff);
       case OP_fun3:
         op++;
         //| ldr     d0, [sp, #(16 * 3)]
@@ -531,12 +530,12 @@ static void emit(Dst_DECL, uint64_t* op) {
         //| ldp     x29, x30, [sp], #32
         //| add     sp, sp, #(16 * 2)
         //| str     d0, [sp, #16]
-        dasm_put(Dst, 143, (*op)&0xffff, (*op>>16)&0xffff, (*op>>32)&0xffff, (*op>>48)&0xffff);
+        dasm_put(Dst, 141, (*op)&0xffff, (*op>>16)&0xffff, (*op>>32)&0xffff, (*op>>48)&0xffff);
         break;
       case OP_clo4:
         op++;
         //| movq    x0, *op
-        dasm_put(Dst, 161, (*op)&0xffff, (*op>>16)&0xffff, (*op>>32)&0xffff, (*op>>48)&0xffff);
+        dasm_put(Dst, 159, (*op)&0xffff, (*op>>16)&0xffff, (*op>>32)&0xffff, (*op>>48)&0xffff);
       case OP_fun4:
         op++;
         //| ldr     d0, [sp, #(16 * 4)]
@@ -550,12 +549,12 @@ static void emit(Dst_DECL, uint64_t* op) {
         //| ldp     x29, x30, [sp], #32
         //| add     sp, sp, #(16 * 3)
         //| str     d0, [sp, #16]
-        dasm_put(Dst, 170, (*op)&0xffff, (*op>>16)&0xffff, (*op>>32)&0xffff, (*op>>48)&0xffff);
+        dasm_put(Dst, 168, (*op)&0xffff, (*op>>16)&0xffff, (*op>>32)&0xffff, (*op>>48)&0xffff);
         break;
       case OP_clo5:
         op++;
         //| movq    x0, *op
-        dasm_put(Dst, 189, (*op)&0xffff, (*op>>16)&0xffff, (*op>>32)&0xffff, (*op>>48)&0xffff);
+        dasm_put(Dst, 187, (*op)&0xffff, (*op>>16)&0xffff, (*op>>32)&0xffff, (*op>>48)&0xffff);
       case OP_fun5:
         op++;
         //| ldr     d0, [sp, #(16 * 5)]
@@ -570,12 +569,12 @@ static void emit(Dst_DECL, uint64_t* op) {
         //| ldp     x29, x30, [sp], #32
         //| add     sp, sp, #(16 * 4)
         //| str     d0, [sp, #16]
-        dasm_put(Dst, 198, (*op)&0xffff, (*op>>16)&0xffff, (*op>>32)&0xffff, (*op>>48)&0xffff);
+        dasm_put(Dst, 196, (*op)&0xffff, (*op>>16)&0xffff, (*op>>32)&0xffff, (*op>>48)&0xffff);
         break;
       case OP_clo6:
         op++;
         //| movq    x0, *op
-        dasm_put(Dst, 218, (*op)&0xffff, (*op>>16)&0xffff, (*op>>32)&0xffff, (*op>>48)&0xffff);
+        dasm_put(Dst, 216, (*op)&0xffff, (*op>>16)&0xffff, (*op>>32)&0xffff, (*op>>48)&0xffff);
       case OP_fun6:
         op++;
         //| ldr     d0, [sp, #(16 * 6)]
@@ -591,12 +590,12 @@ static void emit(Dst_DECL, uint64_t* op) {
         //| ldp     x29, x30, [sp], #32
         //| add     sp, sp, #(16 * 5)
         //| str     d0, [sp, #16]
-        dasm_put(Dst, 227, (*op)&0xffff, (*op>>16)&0xffff, (*op>>32)&0xffff, (*op>>48)&0xffff);
+        dasm_put(Dst, 225, (*op)&0xffff, (*op>>16)&0xffff, (*op>>32)&0xffff, (*op>>48)&0xffff);
         break;
       case OP_clo7:
         op++;
         //| movq    x0, *op
-        dasm_put(Dst, 248, (*op)&0xffff, (*op>>16)&0xffff, (*op>>32)&0xffff, (*op>>48)&0xffff);
+        dasm_put(Dst, 246, (*op)&0xffff, (*op>>16)&0xffff, (*op>>32)&0xffff, (*op>>48)&0xffff);
       case OP_fun7:
         op++;
         //| ldr     d0, [sp, #(16 * 7)]
@@ -613,32 +612,32 @@ static void emit(Dst_DECL, uint64_t* op) {
         //| ldp     x29, x30, [sp], #32
         //| add     sp, sp, #(16 * 6)
         //| str     d0, [sp, #16]
-        dasm_put(Dst, 257, (*op)&0xffff, (*op>>16)&0xffff, (*op>>32)&0xffff, (*op>>48)&0xffff);
+        dasm_put(Dst, 255, (*op)&0xffff, (*op>>16)&0xffff, (*op>>32)&0xffff, (*op>>48)&0xffff);
         break;
 
       case OP_lt:
         //| logic   mi
-        dasm_put(Dst, 279);
+        dasm_put(Dst, 277);
         break;
       case OP_le:
         //| logic   ls
-        dasm_put(Dst, 287);
+        dasm_put(Dst, 285);
         break;
       case OP_gt:
         //| logic   gt
-        dasm_put(Dst, 295);
+        dasm_put(Dst, 293);
         break;
       case OP_ge:
         //| logic   ge
-        dasm_put(Dst, 303);
+        dasm_put(Dst, 301);
         break;
       case OP_eq:
         //| logic   eq
-        dasm_put(Dst, 311);
+        dasm_put(Dst, 309);
         break;
       case OP_neq:
         //| logic   ne
-        dasm_put(Dst, 319);
+        dasm_put(Dst, 317);
         break;
       case OP_and:
         //| ldr     d0, [sp, #16]
@@ -652,7 +651,7 @@ static void emit(Dst_DECL, uint64_t* op) {
         //|->endand:
         //| ucvtf   d0, w0
         //| str     d0, [sp, #16]
-        dasm_put(Dst, 327);
+        dasm_put(Dst, 325);
         break;
       case OP_or:
         //| ldr     d0, [sp, #16]
@@ -666,7 +665,7 @@ static void emit(Dst_DECL, uint64_t* op) {
         //|->endor:
         //| ucvtf   d0, w0
         //| str     d0, [sp, #16]
-        dasm_put(Dst, 340);
+        dasm_put(Dst, 338);
         break;
       case OP_not:
         //| ldr     d0, [sp, #16]
@@ -674,7 +673,7 @@ static void emit(Dst_DECL, uint64_t* op) {
         //| cset    w0, eq
         //| ucvtf   d0, w0
         //| str     d0, [sp, #16]
-        dasm_put(Dst, 353);
+        dasm_put(Dst, 351);
         break;
 
       default:

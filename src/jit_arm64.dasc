@@ -1,3 +1,5 @@
+#include "dynasm/dasm_arm64.h"
+
 |.arch arm64
 |.actionlist ej_compile_actionlist
 |.section code
@@ -23,7 +25,7 @@ static void emit(Dst_DECL, uint64_t* op) {
   while (1) {
     switch (*op) {
       case OP_pos:
-        | nop
+        | .nop
         break;
       case OP_neg:
         | ldr     d0, [sp, #16]

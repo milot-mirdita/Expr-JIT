@@ -28,6 +28,9 @@ if (HAVE_COMPUTED_GOTO)
     target_compile_definitions(exprjit PUBLIC -DHAVE_COMPUTED_GOTO=1)
 endif ()
 
+add_subdirectory(src)
+add_dependencies(exprjit generated)
+
 add_executable(exprjit_test test/main.c)
 target_link_libraries(exprjit_test exprjit)
 

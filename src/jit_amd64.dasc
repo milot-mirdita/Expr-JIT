@@ -1,0 +1,10 @@
+#include "dynasm/dasm_x86.h"
+
+|.arch x64
+|.actionlist ej_compile_actionlist
+|.section code
+|.globals GLOB_
+
+static void emit(Dst_DECL, uint64_t* op) {
+
+}

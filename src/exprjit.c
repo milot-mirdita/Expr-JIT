@@ -19,6 +19,8 @@
 #include <stdbool.h>
 #include <inttypes.h>
 
+#include <sys/mman.h>
+
 enum {
   OP_pos = 0,
   OP_neg,
@@ -996,22 +998,23 @@ double ej_interp(const char *str) {
   return result;
 }
 
+#if defined(__x86_64__) || defined(__arm64__)
 // #define DASM_CHECKS 1
 #include "dynasm/dasm_proto.h"
-#include "dynasm/dasm_arm64.h"
-
-#include <sys/mman.h>
-
-#include "jit.c"
+#if defined(__arm64__)
+#include "jit_arm64.c"
+#elif defined(__x86_64__)
+#include "jit_amd64.c"
+#endif
 void ej_jit(ej_bytecode* bc) {
   assert(bc);
   assert(bc->ops);
 
   dasm_State* state;
   dasm_init(&state, DASM_MAXSECTION);
-  dasm_setup(&state, ej_compile_actionlist);
   void* global_labels[GLOB__MAX];
   dasm_setupglobal(&state, global_labels, GLOB__MAX);
+  dasm_setup(&state, ej_compile_actionlist);
 
   emit(&state, bc->ops);
 
@@ -1026,4 +1029,8 @@ void ej_jit(ej_bytecode* bc) {
   dasm_free(&state);
   return;
 }
-
+#else
+void ej_jit(ej_bytecode* bc) {
+  return;
+}
+#endif
