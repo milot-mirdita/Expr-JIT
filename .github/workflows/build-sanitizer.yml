@@ -10,21 +10,46 @@ jobs:
   build:
     strategy:
       matrix:
-        compiler: [gcc, clang]
+        compiler: [gcc, clang, aarch64-linux-gnu-gcc]
         type: [ASan, UBSan]
       fail-fast: false
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3
 
+    - name: Set up QEMU
+      uses: docker/setup-qemu-action@v2
+      if: ${{ matrix.compiler == 'aarch64-linux-gnu-gcc' }}
+
+    - name: Cross-compiler
+      if: ${{ matrix.compiler == 'aarch64-linux-gnu-gcc' }}
+      run: |
+        sudo dpkg --add-architecture arm64
+        cat << HEREDOC | sudo tee /etc/apt/sources.list
+        deb [arch=amd64,i386] http://azure.archive.ubuntu.com/ubuntu focal main universe multiverse
+        deb [arch=amd64,i386] http://azure.archive.ubuntu.com/ubuntu focal-updates main universe multiverse
+        deb [arch=amd64,i386] http://azure.archive.ubuntu.com/ubuntu focal-backports main universe multiverse
+        deb [arch=amd64,i386] http://azure.archive.ubuntu.com/ubuntu focal-security main universe multiverse
+        deb [arch=arm64] http://ports.ubuntu.com/ubuntu-ports/ focal main  universe multiverse
+        deb [arch=arm64] http://ports.ubuntu.com/ubuntu-ports/ focal-updates main universe multiverse
+        deb [arch=arm64] http://ports.ubuntu.com/ubuntu-ports/ focal-backports main universe multiverse
+        deb [arch=arm64] http://ports.ubuntu.com/ubuntu-ports/ focal-security main universe multiverse
+        HEREDOC
+        sudo apt-get update -qy
+        sudo apt-get install -qy crossbuild-essential-arm64 libc6:arm64 libasan5:arm64 libubsan1:arm64 luajit
+
     - name: Configure CMake
       run: |
-        cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{matrix.type}} -DHAVE_SANITIZER=1
+        TYPE=${{matrix.type}}
+        if [ "${{matrix.type}}" = "ASan" ] && [ "${{matrix.compiler}}" = "aarch64-linux-gnu-gcc" ]; then
+          TYPE=Release
+        fi
+        cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=$TYPE -DHAVE_SANITIZER=1
       env:
         CC: ${{matrix.compiler}}
 
     - name: Build
-      run: cmake --build ${{github.workspace}}/build --config ${{matrix.type}} --parallel $(nproc --all)
+      run: cmake --build ${{github.workspace}}/build --parallel $(nproc --all)
 
     - name: Run
       working-directory: ${{github.workspace}}/build
