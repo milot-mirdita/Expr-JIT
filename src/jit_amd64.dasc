@@ -28,12 +28,12 @@ static void emit(Dst_DECL, uint64_t* op) {
   |   push    rax
   | .endmacro
   | .macro saveregs
-  |   push rbp; push rdi; push rsi; push rbx
+  |   push rbp; push rdi; push rsi; push rbx; push r12; push r13; push r14; push r15
   |   mov      rbp, rsp
   | .endmacro
   | .macro restoreregs
   |   mov      rsp, rbp
-  |   pop rbx; pop rsi; pop rdi; pop rbp
+  |   pop r15; pop r14; pop r13; pop r12; pop rbx; pop rsi; pop rdi; pop rbp
   | .endmacro
   | .macro callop
   |   saveregs
