@@ -205,8 +205,9 @@ void test_syntax() {
         if (err != e) {
             printf("FAILED: %s\n", expr);
         }
+        te_jit(n);
 
-        const double k = te_interp(expr, 0);
+        const double k = te_eval(n);
         lok(k != k);
     }
 }
@@ -240,6 +241,7 @@ void test_nans() {
         te_expr *n = te_compile(expr, 0, 0, &err);
         lok(n);
         lequal(err, 0);
+        te_jit(n);
         const double c = te_eval(n);
         lok(c != c);
         te_free(n);
@@ -274,6 +276,7 @@ void test_infs() {
         te_expr *n = te_compile(expr, 0, 0, &err);
         lok(n);
         lequal(err, 0);
+        te_jit(n);
         const double c = te_eval(n);
         lok(c == c + 1);
         te_free(n);
@@ -291,18 +294,23 @@ void test_variables() {
     te_expr *expr1 = te_compile("cos(x) + sin(y)", lookup, 2, &err);
     lok(expr1);
     lok(!err);
+    te_jit(expr1);
 
     te_expr *expr2 = te_compile("x+x+x-y", lookup, 2, &err);
     lok(expr2);
     lok(!err);
+    te_jit(expr2);
+
 
     te_expr *expr3 = te_compile("x*y^3", lookup, 2, &err);
     lok(expr3);
     lok(!err);
+    te_jit(expr3);
 
     te_expr *expr4 = te_compile("te_st+5", lookup, 3, &err);
     lok(expr4);
     lok(!err);
+    te_jit(expr4);
 
     for (y = 2; y < 3; ++y) {
         for (x = 0; x < 5; ++x) {
@@ -350,6 +358,7 @@ void test_variables() {
 #define cross_check(a, b) do {\
     if ((b)!=(b)) break;\
     expr = te_compile((a), lookup, 2, &err);\
+    te_jit((expr)); \
     lfequal(te_eval(expr), (b));\
     lok(!err);\
     te_free(expr);\
@@ -468,6 +477,7 @@ void test_dynamic() {
         int err;
         te_expr *ex = te_compile(expr, lookup, sizeof(lookup)/sizeof(te_variable), &err);
         lok(ex);
+        te_jit(ex);
         lfequal(te_eval(ex), answer);
         te_free(ex);
     }
@@ -543,6 +553,7 @@ void test_closure() {
         int err;
         te_expr *ex = te_compile(expr, lookup, sizeof(lookup)/sizeof(te_variable), &err);
         lok(ex);
+        te_jit(ex);
         lfequal(te_eval(ex), answer);
         te_free(ex);
     }
@@ -565,6 +576,7 @@ void test_optimize() {
         int err;
         te_expr *ex = te_compile(expr, 0, 0, &err);
         lok(ex);
+        te_jit(ex);
 
         /* The answer should be know without
          * even running eval. */
@@ -632,6 +644,9 @@ void test_pow() {
 
         lok(ex1);
         lok(ex2);
+
+        te_jit(ex1);
+        te_jit(ex2);
 
         double r1 = te_eval(ex1);
         double r2 = te_eval(ex2);

@@ -41,6 +41,7 @@ int main() {
   te_expr *bc = te_compile(expr, vars, sizeof(vars)/sizeof(vars[0]), NULL);
   printf("a %p %g\n", &a, a);
   te_print(bc);
+  te_jit(bc);
 
   struct timeval tv;
 

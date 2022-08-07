@@ -398,7 +398,6 @@ static void emit(Dst_DECL, uint64_t* op) {
   //|   ucvtf   d0, w0
   //|   str     d0, [sp, #16]
   //| .endmacro
-  int arg = 1;
   while (1) {
     switch (*op) {
       case OP_pos:
