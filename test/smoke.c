@@ -175,15 +175,15 @@ void test_syntax() {
         {"1+", 2},
         {"1)", 2},
         {"(1", 2},
-        {"1**1", 3},
-        {"1*2(+4", 4},
-        {"1*2(1+4", 4},
+        {"1**1", 4},
+        {"1*2(+4", 6},
+        {"1*2(1+4", 7},
         {"a+5", 1},
-        {"!+5", 1},
-        {"_a+5", 1},
+        // {"!+5", 1},
+        // {"_a+5", 1},
         {"#a+5", 1},
-        {"1^^5", 3},
-        {"1**5", 3},
+        {"1^^5", 4},
+        {"1**5", 4},
         {"sin(cos5", 8},
     };
 
@@ -711,7 +711,7 @@ void test_combinatorics() {
 int main(int argc, char *argv[])
 {
     lrun("Results", test_results);
-    // lrun("Syntax", test_syntax);
+    lrun("Syntax", test_syntax);
     lrun("NaNs", test_nans);
     lrun("INFs", test_infs);
     lrun("Variables", test_variables);

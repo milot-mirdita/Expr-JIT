@@ -303,7 +303,7 @@ static void pushToOutput(ej_bytecode *bc, oper *op) {
     }
   } else if (op->type == OPER_prefix) {
     if (op->name[0] == '+') {
-      bc_push_op(bc, OP_pos);
+      // bc_push_op(bc, OP_pos);
     } else if (op->name[0] == '-') {
       bc_push_op(bc, OP_neg);
     } else if (op->name[0] == '!') {
@@ -320,18 +320,21 @@ static void pushToOutput(ej_bytecode *bc, oper *op) {
   }
 }
 
-static void pushOutputUntilParen(ej_bytecode *bc, oper_stack *stack) {
-  assert(stack->size && "Unmatching parentheses");
+static bool pushOutputUntilParen(ej_bytecode *bc, oper_stack *stack) {
   oper *top = os_top(stack);
   while (top->type != OPER_paren) {
     pushToOutput(bc, top);
     os_pop(stack);
-    assert(stack->size && "Unmatching parentheses");
+    if (stack->size == 0) {
+      // Unmatching parentheses
+      return false;
+    }
     top = os_top(stack);
   }
+  return true;
 }
 
-static void pushToOper(ej_bytecode *bc, oper_stack *stack, oper *op) {
+static bool pushToOper(ej_bytecode *bc, oper_stack *stack, oper *op) {
   if (stack->size) {
     oper *top = os_top(stack);
     while (shouldPop(top, op)) {
@@ -344,6 +347,7 @@ static void pushToOper(ej_bytecode *bc, oper_stack *stack, oper *op) {
     }
   }
   os_push(stack, *op);
+  return true;
 }
 
 static oper *incrementArgs(oper_stack *stack) {
@@ -365,6 +369,82 @@ static char prevChar(const char *str) {
   while (isspace(*str)) --str;
   return *str;
 }
+
+bool ej_validate(ej_bytecode *bc) {
+  if (!bc || !(bc->ops)) {
+    return false;
+  }
+
+  size_t stack_size = 0;
+  uint64_t *op = bc->ops;
+  while (1) {
+    switch (*op) {
+      case OP_pos:
+      case OP_neg:
+      case OP_not:
+        // if (stack_size < 1) {
+        //   return false;
+        // }
+        break;
+      case OP_add:
+      case OP_sub:
+      case OP_mul:
+      case OP_div:
+      case OP_gt:
+      case OP_ge:
+      case OP_lt:
+      case OP_le:
+      case OP_eq:
+      case OP_neq:
+      case OP_and:
+      case OP_or:
+        stack_size--;
+        if (stack_size < 1) {
+          return false;
+        }
+        break;
+
+      case OP_var:
+        ++op;
+        stack_size++;
+        break;
+      case OP_con:
+        ++op;
+        stack_size++;
+        break;
+      case OP_ret:
+        return true;
+
+      case OP_clo0: case OP_clo1: case OP_clo2: case OP_clo3:
+      case OP_clo4: case OP_clo5: case OP_clo6: case OP_clo7: {
+        const uint64_t arity = ARITY(*op);
+        ++op;
+        ++op;
+        if (stack_size < arity) {
+          return false;
+        }
+        stack_size -= (arity - 1);
+        break;
+      }
+
+      case OP_fun0: case OP_fun1: case OP_fun2: case OP_fun3:
+      case OP_fun4: case OP_fun5: case OP_fun6: case OP_fun7: {
+        const uint64_t arity = ARITY(*op);
+        ++op;
+        if (stack_size < arity) {
+          return false;
+        }
+        stack_size -= (arity - 1);
+        break;
+      }
+
+      default:
+        return false;
+    }
+    ++op;
+  }
+  return false;
+}
   
 ej_bytecode *ej_compile(const char *str, ej_variable *vars, size_t len, int *error) {
   assert(str);
@@ -378,7 +458,9 @@ ej_bytecode *ej_compile(const char *str, ej_variable *vars, size_t len, int *err
     *error = 0;
   }
 
-  
+  const char* start = str;
+  bool pushed;
+
   while (*str) {
     while (isspace(*str)) ++str;
 
@@ -391,10 +473,16 @@ ej_bytecode *ej_compile(const char *str, ej_variable *vars, size_t len, int *err
       if (!var) {
         var = findBuiltin(begin, str - begin);
       }
-      assert(var && "Failed to lookup identifier");
+      if (!var) {
+        // "Failed to lookup identifier"
+        goto error;
+      }
       while (isspace(*str)) ++str;
       if (*str == '(') {
-        assert(funOrClo(var->type) && "Calling a variable");
+        if (!funOrClo(var->type)) {
+          // "Calling a variable"
+          goto error;
+        }
         oper op;
         op.name = var->name;
         op.prec = 255;
@@ -405,7 +493,10 @@ ej_bytecode *ej_compile(const char *str, ej_variable *vars, size_t len, int *err
         op.ctx = var->context;
         os_push(&stack, op);
       } else {
-        assert(var->type == EJ_VARIABLE && "Taking the value of a function");
+        if (var->type != EJ_VARIABLE) {
+          // "Taking the value of a function"
+          goto error;
+        }
         bc_push_var(bc, var->address);
         prefixContext = false;
       }
@@ -426,7 +517,13 @@ ej_bytecode *ej_compile(const char *str, ej_variable *vars, size_t len, int *err
     
     if (*str == ',') {
       ++str;
-      pushOutputUntilParen(bc, &stack);
+      if (stack.size == 0) {
+        goto error;
+      }
+      pushed = pushOutputUntilParen(bc, &stack);
+      if (pushed == false) {
+        goto error;
+      }
       incrementArgs(&stack);
       prefixContext = true;
       continue;
@@ -435,11 +532,18 @@ ej_bytecode *ej_compile(const char *str, ej_variable *vars, size_t len, int *err
     if (*str == ')') {
       const char prev = prevChar(str);
       ++str;
-      pushOutputUntilParen(bc, &stack);
+      if (stack.size == 0) {
+        goto error;
+      }
+      pushed = pushOutputUntilParen(bc, &stack);
+      if (pushed == false) {
+        goto error;
+      }
       if (prev != '(') {
         oper *fun = incrementArgs(&stack);
-        if (fun) {
-          assert(fun->args == ARITY(fun->type) && "Wrong number of arguments");
+        if (fun && fun->args != ARITY(fun->type)) {
+          // "Wrong number of arguments
+          goto error;
         }
       }
       os_pop(&stack);
@@ -451,7 +555,10 @@ ej_bytecode *ej_compile(const char *str, ej_variable *vars, size_t len, int *err
       oper *op = findOper(str, OPER_prefix);
       if (op) {
         str += strlen(op->name);
-        pushToOper(bc, &stack, op);
+        pushed = pushToOper(bc, &stack, op);
+        if (pushed == false) {
+          goto error;
+        }
         prefixContext = true;
         continue;
       }
@@ -460,7 +567,10 @@ ej_bytecode *ej_compile(const char *str, ej_variable *vars, size_t len, int *err
     oper *op = findOper(str, OPER_inflix);
     if (op) {
       str += strlen(op->name);
-      pushToOper(bc, &stack, op);
+      pushed = pushToOper(bc, &stack, op);
+      if (pushed == false) {
+        goto error;
+      }
       prefixContext = true;
       continue;
     }
@@ -474,20 +584,44 @@ ej_bytecode *ej_compile(const char *str, ej_variable *vars, size_t len, int *err
       continue;
     }
     
-    assert(false);
-    __builtin_unreachable();
+    goto error;
   }
   
   while (stack.size) {
     oper *top = os_top(&stack);
-    assert(top->type != OPER_paren && "Unmatching parentheses");
+    if (top->type == OPER_paren) {
+      goto error;
+    }
     pushToOutput(bc, top);
     os_pop(&stack);
   }
+
+  if (bc->size == 0) {
+    goto error;
+  }
   
   bc_push_op(bc, OP_ret);
+
+  if (ej_validate(bc) == false) {
+    goto error;
+  }
+
   os_free(&stack);
   return bc;
+
+error:
+  // if (bc->size != 0) {
+  //   bc_push_op(bc, OP_ret);
+  //   ej_print(bc);
+  // }
+  if (error) {
+    *error = (str - start);
+    if (*error == 0) *error = 1;
+  }
+  os_free(&stack);
+  ej_free(bc);
+
+  return NULL;
 }
 
 #define CAST_FUN(...) (*(double(**)(__VA_ARGS__))(++op))
@@ -502,10 +636,12 @@ ej_bytecode *ej_compile(const char *str, ej_variable *vars, size_t len, int *err
 #define POP() *(top--)
 
 double ej_eval_switch(ej_bytecode *bc) {
-  assert(bc);
+  if (!bc) return NAN;
+
   if (bc->jit != NULL) {
     return (bc->jit)();
   }
+
   assert(bc->ops);
   uint64_t *op = bc->ops;
   double stack[EJ_STACK_SIZE];
@@ -694,10 +830,12 @@ double ej_eval_switch(ej_bytecode *bc) {
 
 #ifdef HAVE_COMPUTED_GOTO
 double ej_eval_goto(ej_bytecode *bc) {
-  assert(bc);
+  if (!bc) return NAN;
+
   if (bc->jit != NULL) {
     return (bc->jit)();
   }
+
   assert(bc->ops);
   uint64_t *op = bc->ops;
   double stack[EJ_STACK_SIZE];
@@ -913,7 +1051,7 @@ void ej_print(ej_bytecode *bc) {
   while (1) {
     switch (*op) {
       case OP_pos:
-        puts("pos");
+        // puts("pos");
         break;
       case OP_neg:
         puts("neg");
@@ -1015,7 +1153,9 @@ double ej_interp(const char *str, int* error) {
 #include "jit_amd64.c"
 #endif
 void ej_jit(ej_bytecode* bc) {
-  assert(bc);
+  if (!bc) {
+    return;
+  }
   assert(bc->ops);
 
   dasm_State* state;
