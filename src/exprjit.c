@@ -892,7 +892,9 @@ double ej_eval_goto(ej_bytecode *bc) {
 
 void ej_free(ej_bytecode *bc) {
   if (bc) {
-    munmap(bc->jit, bc->jit_size);
+    if (bc->jit) {
+      munmap(bc->jit, bc->jit_size);
+    }
     free(bc->ops);
     free(bc);
   }
