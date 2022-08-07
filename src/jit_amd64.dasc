@@ -27,16 +27,25 @@ static void emit(Dst_DECL, uint64_t* op) {
   |   movd    rax, xmm0
   |   push    rax
   | .endmacro
+  | .macro saveregs
+  |   push rbp; push rdi; push rsi; push rbx
+  |   mov      rbp, rsp
+  | .endmacro
+  | .macro restoreregs
+  |   mov      rsp, rbp
+  |   pop rbx; pop rsi; pop rdi; pop rbp
+  | .endmacro
   | .macro callop
-  |   push     rax
+  |   saveregs
+  |   xor      rax, rax
+  |   and      rsp, -16
   |   mov64    rsi, *op
   |   call     rsi
-  |   pop      rax
+  |   restoreregs
   |   movd     rax, xmm0
   |   push     rax
   | .endmacro
-  | push    rbp
-  | mov     rbp, rsp
+  | saveregs
   while (1) {
     switch (*op) {
       case OP_pos:
@@ -76,7 +85,7 @@ static void emit(Dst_DECL, uint64_t* op) {
       case OP_ret:
         | pop      rax
         | movd     xmm0, rax
-        | pop      rbp
+        | restoreregs
         | ret
         return;
 
