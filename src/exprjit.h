@@ -36,7 +36,7 @@ typedef struct ej_variable {
 
 typedef struct ej_bytecode ej_bytecode;
 
-ej_bytecode *ej_compile(const char *, ej_variable *, size_t);
+ej_bytecode *ej_compile(const char *, ej_variable *, size_t, int *);
 double ej_eval_switch(ej_bytecode *);
 #ifdef HAVE_COMPUTED_GOTO
 double ej_eval_goto(ej_bytecode *);
@@ -46,7 +46,7 @@ double ej_eval_goto(ej_bytecode *);
 #endif
 void ej_print(ej_bytecode *);
 void ej_free(ej_bytecode *);
-double ej_interp(const char *);
+double ej_interp(const char *, int *);
 void ej_jit(ej_bytecode* bc);
 
 #ifdef __cplusplus

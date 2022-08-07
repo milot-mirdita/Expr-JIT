@@ -365,14 +365,19 @@ static char prevChar(const char *str) {
   while (isspace(*str)) --str;
   return *str;
 }
-
-ej_bytecode *ej_compile(const char *str, ej_variable *vars, size_t len) {
+  
+ej_bytecode *ej_compile(const char *str, ej_variable *vars, size_t len, int *error) {
   assert(str);
   assert(vars ? len != 0 : len == 0);
-  
+
   ej_bytecode *bc = bc_alloc(64);
   oper_stack stack = os_alloc(16);
   bool prefixContext = true;
+
+  if (error) {
+    *error = 0;
+  }
+
   
   while (*str) {
     while (isspace(*str)) ++str;
@@ -991,8 +996,8 @@ void ej_print(ej_bytecode *bc) {
   }
 }
 
-double ej_interp(const char *str) {
-  ej_bytecode *bc = ej_compile(str, NULL, 0);
+double ej_interp(const char *str, int* error) {
+  ej_bytecode *bc = ej_compile(str, NULL, 0, error);
   if (!bc) {
     return NAN;
   }

@@ -18,16 +18,11 @@ enum {
 };
 typedef struct ej_variable te_variable;
 typedef struct ej_bytecode te_expr;
-#define te_compile(a,b,c,d) ej_compile((a),(b),(c))
+#define te_compile(a,b,c,d) ej_compile((a),(b),(c),(d))
 #define te_eval(a) ej_eval((a))
 #define te_print(a) ej_print((a))
 #define te_free(a) ej_free((a))
-double te_interp(const char *str, int* err) {
-  if (err != NULL) {
-    *err = 0;
-  }
-  return ej_interp(str);
-}
+#define te_interp(a,b) ej_interp((a),(b))
 #define te_jit(a) ej_jit((a))
 
 #ifdef __cplusplus
