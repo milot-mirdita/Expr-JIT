@@ -64,8 +64,8 @@ static void emit(Dst_DECL, uint64_t* op) {
         break;
       case OP_var:
         op++;
-        | mov64   rbx, *op
-        | mov     rax, [rbx]
+        | mov64   rax, *op
+        | mov     rax, [rax]
         | push    rax
         break;
       case OP_con:
