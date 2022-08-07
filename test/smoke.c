@@ -165,6 +165,8 @@ void test_results() {
         if (err) {
             printf("FAILED: %s (%d)\n", expr, err);
         }
+
+        te_free(bc);
     }
 }
 
@@ -209,6 +211,8 @@ void test_syntax() {
 
         const double k = te_eval(n);
         lok(k != k);
+
+        te_free(n);
     }
 }
 
