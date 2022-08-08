@@ -31,6 +31,9 @@ endif ()
 add_subdirectory(src)
 add_dependencies(exprjit generated)
 
+add_executable(exprjit_cli test/cli.c)
+target_link_libraries(exprjit_cli exprjit)
+
 add_executable(exprjit_test test/main.c)
 target_link_libraries(exprjit_test exprjit)
 
