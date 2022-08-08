@@ -1054,6 +1054,9 @@ void ej_free(ej_bytecode *bc) {
 }
 
 void ej_print(ej_bytecode *bc) {
+  if (!bc) {
+    return;
+  }
   assert(bc);
   assert(bc->ops);
   
