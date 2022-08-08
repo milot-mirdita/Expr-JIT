@@ -87,7 +87,7 @@ static void bc_push_op(ej_bytecode *bc, const uint64_t op) {
   if (size == capacity) {
     const size_t newCapacity = capacity * 2;
     bc->capacity = newCapacity;
-    bc->ops = realloc(bc->ops, newCapacity);
+    bc->ops = realloc(bc->ops, newCapacity * sizeof(uint64_t));
   }
   const size_t newSize = size + 1;
   bc->ops[size] = op;
@@ -222,7 +222,7 @@ static void os_push(oper_stack *stack, oper op) {
   if (size == capacity) {
     const size_t newCapacity = capacity * 2;
     stack->capacity = newCapacity;
-    stack->data = realloc(stack->data, newCapacity);
+    stack->data = realloc(stack->data, newCapacity * sizeof(oper));
   }
   const size_t newSize = size + 1;
   stack->data[size] = op;
