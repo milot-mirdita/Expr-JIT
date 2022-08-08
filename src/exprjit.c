@@ -384,9 +384,9 @@ bool ej_validate(ej_bytecode *bc) {
       case OP_pos:
       case OP_neg:
       case OP_not:
-        // if (stack_size < 1) {
-        //   return false;
-        // }
+        if (stack_size < 1) {
+          return false;
+        }
         break;
       case OP_add:
       case OP_sub:
@@ -400,10 +400,10 @@ bool ej_validate(ej_bytecode *bc) {
       case OP_neq:
       case OP_and:
       case OP_or:
-        stack_size--;
-        if (stack_size < 1) {
+        if (stack_size < 2) {
           return false;
         }
+        stack_size--;
         break;
 
       case OP_var:
@@ -415,6 +415,9 @@ bool ej_validate(ej_bytecode *bc) {
         stack_size++;
         break;
       case OP_ret:
+        if (stack_size != 1) {
+          return false;
+        }
         return true;
 
       case OP_clo0: case OP_clo1: case OP_clo2: case OP_clo3:
