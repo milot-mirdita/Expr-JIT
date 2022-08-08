@@ -160,6 +160,8 @@ static oper prec_table[] = {
   {"||", 12, ASSOC_left,  OPER_inflix},
 };
 
+const char* valid_op_chars = "+-!^*/%<>=&|()_,.";
+
 static const double constant_e = M_E;
 static const double constant_pi = M_PI;
 
@@ -465,6 +467,11 @@ ej_bytecode *ej_compile(const char *str, ej_variable *vars, size_t len, int *err
     while (isspace(*str)) ++str;
 
     if (*str == '\0') { continue; }
+
+    if (isalnum(*str) == false && strchr(valid_op_chars, *str) == NULL) {
+        // invalid character
+        goto error;
+    }
     
     if (isalpha(*str) || *str == '_') {
       const char *begin = str++;
