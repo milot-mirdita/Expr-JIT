@@ -1159,7 +1159,8 @@ double ej_interp(const char *str, int* error) {
   return result;
 }
 
-#if defined(__x86_64__) || defined(__arm64__)
+// windows function calls are not implemented, only sysv abi is supported
+#if (defined(__x86_64__) || defined(__arm64__)) && !defined(_WIN32)
 // #define DASM_CHECKS 1
 #include "dynasm/dasm_proto.h"
 #if defined(__arm64__)
