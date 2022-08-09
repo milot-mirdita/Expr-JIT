@@ -47,6 +47,7 @@ int main(int argc, const char** argv) {
         vars[var_count].address = value;
         vars[var_count].type = TE_VARIABLE;
         vars[var_count].context = NULL;
+        var_count++;
         break;
       default:
         break;
