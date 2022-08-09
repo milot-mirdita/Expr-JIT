@@ -32,6 +32,7 @@ typedef struct ej_variable {
   const void *address;
   int type;
   void *context;
+  int bound;
 } ej_variable;
 
 typedef struct ej_bytecode ej_bytecode;

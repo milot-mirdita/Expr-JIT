@@ -482,6 +482,8 @@ ej_bytecode *ej_compile(const char *str, ej_variable *vars, size_t len, int *err
       ej_variable *var = findVar(vars, len, begin, str - begin);
       if (!var) {
         var = findBuiltin(begin, str - begin);
+      } else {
+        var->bound = true;
       }
       if (!var) {
         // "Failed to lookup identifier"
