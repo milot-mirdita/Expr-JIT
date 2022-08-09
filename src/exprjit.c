@@ -447,6 +447,7 @@ bool ej_validate(ej_bytecode *bc) {
         return false;
     }
     ++op;
+    // printf("stack size: %llu\n", stack_size);
   }
   return false;
 }
@@ -1184,12 +1185,26 @@ void ej_jit(ej_bytecode* bc) {
 
   int status;
   status = dasm_link(&state, &(bc->jit_size));
-  assert(status == DASM_S_OK);
+  if (status != DASM_S_OK) {
+    goto free_state;
+  }
   bc->jit = mmap(0, bc->jit_size, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
+  if (bc->jit == NULL) {
+    goto free_state;
+  }
   status = dasm_encode(&state, bc->jit);
-  assert(status == DASM_S_OK);
+  if (status != DASM_S_OK) {
+    goto unmap;
+  }
   status = mprotect(bc->jit, bc->jit_size, PROT_READ | PROT_EXEC);
-  assert(status == 0);
+  if (status == 0) {
+    goto free_state;
+  }
+unmap:
+  munmap(bc->jit, bc->jit_size);
+  bc->jit = NULL;
+  bc->jit_size = 0;
+free_state:
   dasm_free(&state);
   return;
 }
