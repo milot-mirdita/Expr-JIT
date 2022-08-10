@@ -10,19 +10,28 @@ jobs:
   build:
     strategy:
       matrix:
-        compiler: [gcc, clang, aarch64-linux-gnu-gcc]
-        type: [ASan, UBSan]
+        array: [
+          { platform: "ubuntu-latest", compiler: "gcc", type: "ASan" },
+          { platform: "ubuntu-latest", compiler: "gcc", type: "UBSan" },
+          { platform: "ubuntu-latest", compiler: "aarch64-linux-gnu-gcc", type: "Debug" },
+          { platform: "ubuntu-latest", compiler: "clang", type: "ASan" },
+          { platform: "ubuntu-latest", compiler: "clang", type: "UBSan" },
+          { platform: "macos-latest", compiler: "clang", type: "ASan" },
+          { platform: "macos-latest", compiler: "clang", type: "UBSan" },
+          { platform: "windows-latest", compiler: "gcc", type: "ASan" },
+          { platform: "windows-latest", compiler: "gcc", type: "UBSan" }
+        ]
       fail-fast: false
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.array.platform }}
     steps:
     - uses: actions/checkout@v3
 
     - name: Set up QEMU
       uses: docker/setup-qemu-action@v2
-      if: ${{ matrix.compiler == 'aarch64-linux-gnu-gcc' }}
+      if: ${{ matrix.array.compiler == 'aarch64-linux-gnu-gcc' }}
 
     - name: Cross-compiler
-      if: ${{ matrix.compiler == 'aarch64-linux-gnu-gcc' }}
+      if: ${{ matrix.array.compiler == 'aarch64-linux-gnu-gcc' }}
       run: |
         sudo dpkg --add-architecture arm64
         cat << HEREDOC | sudo tee /etc/apt/sources.list
@@ -38,23 +47,23 @@ jobs:
         sudo apt-get update -qy
         sudo apt-get install -qy crossbuild-essential-arm64 libc6:arm64 libasan5:arm64 libubsan1:arm64 luajit
 
+    - name: Cygwin
+      uses: cygwin/cygwin-install-action@v1
+      with:
+        packages: gcc-core make cmake
+      if: ${{ matrix.array.platform == 'windows-latest' }}
+
     - name: Configure CMake
-      run: |
-        TYPE=${{matrix.type}}
-        if [ "${{matrix.type}}" = "ASan" ] && [ "${{matrix.compiler}}" = "aarch64-linux-gnu-gcc" ]; then
-          TYPE=Release
-        fi
-        cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=$TYPE -DHAVE_SANITIZER=1
+      run: bash -c 'cmake -B ./build -DCMAKE_BUILD_TYPE=$TYPE -DHAVE_SANITIZER=1'
       env:
-        CC: ${{matrix.compiler}}
+        CC: ${{matrix.array.compiler}}
 
     - name: Build
-      run: cmake --build ${{github.workspace}}/build --parallel $(nproc --all)
+      run: bash -c 'cmake --build ./build --parallel'
 
     - name: Run
-      working-directory: ${{github.workspace}}/build
       run: |
-        ./exprjit_test
-        ./exprjit_smoke
-        ./exprjit_benchmark
+        bash -c './build/exprjit_test'
+        bash -c './build/exprjit_smoke'
+        bash -c './build/exprjit_benchmark'
       
