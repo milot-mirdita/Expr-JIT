@@ -29,7 +29,9 @@ if (HAVE_COMPUTED_GOTO)
 endif ()
 
 add_subdirectory(src)
-add_dependencies(exprjit generated)
+if(TARGET generated)
+    add_dependencies(exprjit generated)
+endif()
 
 add_executable(exprjit_cli test/cli.c)
 target_link_libraries(exprjit_cli exprjit)
