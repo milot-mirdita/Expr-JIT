@@ -284,14 +284,14 @@ static void pushToOutput(ej_bytecode *bc, oper *op) {
       bc_push_fun(bc, fmod, 2);
     } else if (strncmp(op->name, "^", 1) == 0) {
       bc_push_fun(bc, pow, 2);
-    } else if (strncmp(op->name, "<", 1) == 0) {
-      bc_push_op(bc, OP_lt);
-    } else if (strncmp(op->name, ">", 1) == 0) {
-      bc_push_op(bc, OP_gt);
     } else if (strncmp(op->name, "<=", 2) == 0) {
       bc_push_op(bc, OP_le);
     } else if (strncmp(op->name, ">=", 2) == 0) {
       bc_push_op(bc, OP_ge);
+    } else if (strncmp(op->name, "<", 1) == 0) {
+      bc_push_op(bc, OP_lt);
+    } else if (strncmp(op->name, ">", 1) == 0) {
+      bc_push_op(bc, OP_gt);
     } else if (strncmp(op->name, "==", 2) == 0) {
       bc_push_op(bc, OP_eq);
     } else if (strncmp(op->name, "!=", 2) == 0) {
